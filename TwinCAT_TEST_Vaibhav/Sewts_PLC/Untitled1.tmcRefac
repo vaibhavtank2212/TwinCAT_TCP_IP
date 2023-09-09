@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedType>
+      <Type guid="77127be8-197e-460e-8a10-0b2b0a7588f9">STRBUFFERHEADER</Type>
+      <From>strBufferHeader</From>
+      <To>strRecivedata</To>
+    </RenamedType>
+    <RenamedType>
+      <Type guid="ce8fb777-c09a-4c69-bfb3-d28524e3c1a7">STRQUEUECONTENT</Type>
+      <From>strQueueContent</From>
+      <To>strSenddata</To>
+    </RenamedType>
+  </Renames>
+</Refactors>

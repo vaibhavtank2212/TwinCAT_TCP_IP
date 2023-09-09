@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <GVL Name="Sewts_TCP" Id="{b439de02-6efa-4cc8-8593-ac3aff9a2f92}">
+    <Declaration><![CDATA[VAR_GLOBAL CONSTANT 
+	
+	MAX_Bool_SIZE	:UINT := 31;	(* size of send & recceive buffer -> see "strBufferHeader.arbyDATA"  *)
+		
+END_VAR
+]]></Declaration>
+  </GVL>
+</TcPlcObject>
