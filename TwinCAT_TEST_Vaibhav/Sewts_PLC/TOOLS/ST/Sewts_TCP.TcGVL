@@ -2,10 +2,10 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
   <GVL Name="Sewts_TCP" Id="{b439de02-6efa-4cc8-8593-ac3aff9a2f92}">
     <Declaration><![CDATA[VAR_GLOBAL CONSTANT 
-	MAX_QUEUE_SIZE 	:UINT := 4;	(* Queue size *)
+	MAX_QUEUE_SIZE 	:UINT := 20;	(* Queue size *)
 	MAX_BUFFER_SIZE	:UINT := 1100;	(* size of send & recceive buffer -> see "strBufferHeader.arbyDATA"  *)
 	MAX_QueueData	:UINT := 512;	(* extended queue only: data len (bytes) per entry buffered on queue *)	
-
+	test			:byte :=
 END_VAR
 ]]></Declaration>
   </GVL>

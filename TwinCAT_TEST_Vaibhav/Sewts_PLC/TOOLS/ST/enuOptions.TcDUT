@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="enuOptions" Id="{4f628f2c-a736-4750-a441-f2417436a990}">
+    <Declaration><![CDATA[// 26.3.2019 + CheckAndTerminate_Custom
+TYPE enuOptions :
+	(
+		NONE,      					(* do nothing (default) 			   						*)
+		CheckNull, 					(* determine lenght by first hex 0  						*)
+		CheckCRLF, 					(* determine lenght by CRLF         						*)
+		CheckAndTerminate_CRLF,		(* determine lenght by 0 and terminate with CRLF <0D><0A> 	*)
+		CheckAndTerminate_ETX,  		(* determine lenght by 0 and terminate with ETX  <03>     	*)
+		CheckAndTerminate_Custom 	(* determine lenght by 0 and terminate with custom character defined by INPUT\xEOT      	*)
+	);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

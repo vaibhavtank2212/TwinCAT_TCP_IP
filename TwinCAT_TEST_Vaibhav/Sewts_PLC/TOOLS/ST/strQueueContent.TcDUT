@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="strQueueContent" Id="{ce8fb777-c09a-4c69-bfb3-d28524e3c1a7}">
+    <Declaration><![CDATA[TYPE strQueueContent  :
+	STRUCT
+		uiCount		: UINT;
+		uiMaxCount  : UINT;				(* information only, can be used to understand the queue load *)
+		iTelHandle	: UDINT;			(* to maintain a unique msg handle 		*)
+		iLastHAndle : UDINT; 			(* handle of last telegram fired 		*)
+		STACK		: ARRAY  [0 .. Sewts_TCP.MAX_QUEUE_SIZE] OF strQueueContentDetail;
+	END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

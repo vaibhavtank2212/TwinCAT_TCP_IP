@@ -3,6 +3,8 @@
   <GVL Name="output" Id="{c7dcf864-6141-4728-8cb4-8f4d99090033}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
+	bM1Motor		:BOOL; // M2 motor 
+	bM2Motor 		:BOOL;	//M2 Motor
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

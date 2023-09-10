@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="strQueueDetailExtended" Id="{4ff60372-d25d-4f70-9dc7-20c4488c3682}">
+    <Declaration><![CDATA[TYPE strQueueDetailExtended EXTENDS strQueueDetail :
+	STRUCT
+		aDATA			: ARRAY [0..Sewts_TCP.MAX_QueueData] OF BYTE ;	(* Data *)
+	END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

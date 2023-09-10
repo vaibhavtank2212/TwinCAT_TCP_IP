@@ -3,8 +3,8 @@
   <GVL Name="GVX" Id="{3c1176c5-fef7-4310-a5da-0b70b45f91be}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
-	st_recive		:strRecivedata;
-	st_send			:strSenddata;
+	arrbySend_Data			: ARRAY [0..Sewts_TCP.MAX_QUEUE_SIZE] OF BYTE;
+	arrbyReceive_Data		: ARRAY [0..Sewts_TCP.MAX_QUEUE_SIZE] OF BYTE;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

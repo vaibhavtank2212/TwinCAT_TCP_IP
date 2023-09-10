@@ -9,8 +9,7 @@ PROGRAM MAIN
 VAR
 	TCP_COM 		:FB_TCP_COM;
 	
-	
-	
+
 	bEanable_Sever		:BOOL   := FALSE;
 	uinPort				:UINT   :=9800;				
 	sIP_Address			:STRING :='127.0.0.1';							
@@ -26,12 +25,7 @@ VAR
 	
 	(*initialisation for the array in Global *)
 	i 					: INT ;
-	
-	
-	
-	
-	
-	
+		
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[TCP_COM(bEnable:= TRUE,
@@ -39,41 +33,28 @@ END_VAR]]></Declaration>
 		sIPAddress:=sIP_Address,
 		tFireDelay:=);
 		
-
-	
 		(*Output from the function block TCP/IP communication*)
         bTCP_COM_Error		:=TCP_COM.bError;
         iTCP_COM_ErrId		:=TCP_COM.nErrId;
         stTCP_COM_sError	:=TCP_COM.sError;
 		bTCP_COM_Connected 	:= TCP_COM.bConnected;
-		
-		(*initialisatio  of arry *)
-		GVX.st_send.STACK[0] := FALSE;
-		FOR (i := 1) TO 31 DO
-			GVX.st_send.STACK[i] := TRUE;
-		END_FOR
-		
-					   
-		
-		
-		
-		
-		
+				
 		(* Configuration of Timer100ms *)
 Timer100ms(IN := TRUE, PT := T#100MS);
 Timer500ms(IN := TRUE, PT := T#100MS);
 
 IF Timer100ms.Q THEN
-     TCP_COM.strSendData := GVX.st_send;
-	 GVX.st_recive		 := TCP_COM.strOutputdata;
+   TCP_COM.WriteInQueue_by_Pointer(pDATA:=ADR(GVX.arrbySend_Data),szDATA:=SIZEOF(GVX.arrbySend_Data),Prio:=1);
+   TCP_COM.ptReceiveBuffer := ADR(GVX.arrbyReceive_Data);
 	 Timer100ms(IN := FALSE);
 	 
 END_IF
 
 IF Timer100ms.Q THEN
-     GVX.st_send.STACK[0] := NOT GVX.st_send.STACK[0];
+	 GVX.arrbySend_Data[0].0 := NOT  GVX.arrbySend_Data[0].0;
 	 Timer500ms(IN := FALSE);
 END_IF
+TCP_COM.WriteInQueue_by_Pointer(pDATA:=ADR(GVX.arrbySend_Data),szDATA:=SIZEOF(GVX.arrbySend_Data),Prio:=1);
 ]]></ST>
     </Implementation>
   </POU>

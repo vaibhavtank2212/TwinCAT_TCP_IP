@@ -42,10 +42,19 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="TOOLS\TCP\ST\strRecivedata.TcDUT">
+    <Compile Include="TOOLS\TCP\ST\strBufferHeader.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="TOOLS\TCP\ST\strSenddata.TcDUT">
+    <Compile Include="TOOLS\TCP\ST\strQueueContent.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TOOLS\TCP\ST\strQueueContentDetail.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TOOLS\TCP\ST\strQueueDetail.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TOOLS\TCP\ST\strQueueDetailExtended.TcDUT">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -54,8 +63,8 @@
     <Folder Include="GVLs" />
     <Folder Include="TOOLS" />
     <Folder Include="TOOLS\TCP" />
-    <Folder Include="TOOLS\TCP\ST" />
     <Folder Include="POUs" />
+    <Folder Include="TOOLS\TCP\ST" />
   </ItemGroup>
   <ItemGroup>
     <PlaceholderReference Include="Tc2_Standard">

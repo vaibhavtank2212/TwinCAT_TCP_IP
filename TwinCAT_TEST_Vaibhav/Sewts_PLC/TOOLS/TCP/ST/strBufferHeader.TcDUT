@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="strBufferHeader" Id="{77127be8-197e-460e-8a10-0b2b0a7588f9}">
+    <Declaration><![CDATA[TYPE strBufferHeader :
+	STRUCT
+		arbyDATA	: ARRAY[1..Sewts_TCP.MAX_BUFFER_SIZE] OF BYTE;
+		bJob		: BOOL;		
+	END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
