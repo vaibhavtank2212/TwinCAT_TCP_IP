@@ -3,8 +3,7 @@
   <DUT Name="strRecivedata" Id="{77127be8-197e-460e-8a10-0b2b0a7588f9}">
     <Declaration><![CDATA[TYPE strRecivedata :
 	STRUCT
-		arbyDATA	: ARRAY[0..Sewts_TCP.MAX_Bool_SIZE] OF BOOL;
-		bJob		: BOOL ;   											(*Job done *)	
+		arbyDATA	: ARRAY[0..Sewts_TCP.MAX_Bool_SIZE] OF BOOL;   											(*Job done *)	
 	END_STRUCT
 END_TYPE
 ]]></Declaration>

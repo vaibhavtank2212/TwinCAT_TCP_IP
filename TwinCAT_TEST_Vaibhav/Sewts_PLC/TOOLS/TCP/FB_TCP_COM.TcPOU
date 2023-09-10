@@ -5,19 +5,14 @@
 FUNCTION_BLOCK FB_TCP_COM
 VAR_INPUT
 	
-	bEnable			:BOOL		:= TRUE;	(* This function *)
+	bEnable			:BOOL;
 	(* com parameter  *)
-	bAsClient		:BOOL		:= FALSE;	(* FALSE -> TCP - Server / TCP-Client *)	
+	
 	nPort			:UINT		:= 2000;		(* SERVER: port to provide / CLIENT: port on server  				*)
 	sIPAddress		:STRING (80):= '127.0.0.1';	(* SERVER: own network address to use / CLIENT: address of server 	*)
 	(* send options*)
 	tFireDelay		:TIME		:= T#0S;	(* betwenn two messages *)
-	bCompactMessage	:BOOL		:= TRUE;	(* forces to send all messages AS one telegram - partner has to splitt messages!!!  *)
-
-	ptReceiveBuffer	:POINTER TO strRecivedata;	(* find receive data and coordination flag in here  *)
-	
-	bNewData		:BOOL; (*new data for bool*)
-	ptSendBuffer	:POINTER TO strSenddata;
+	strSendData		:strSenddata;
 END_VAR
 
 VAR_OUTPUT
@@ -25,6 +20,7 @@ VAR_OUTPUT
 	bError			:BOOL;	
 	nErrId			:UDINT;				(* FB_SocketConnect Error ID  		                                         *)
 	sError			:STRING[80];		(* Error text (out of TC help system 	                                     *)
+	strOutputdata	:strRecivedata;
 END_VAR
 VAR
 	// TCP Connection
@@ -40,11 +36,11 @@ VAR
     fbSocketSend 		: FB_SocketSend 	:= ( sSrvNetID := '', tTimeout := DEFAULT_ADS_TIMEOUT );
     fbSocketReceive 	: FB_SocketReceive 	:= ( sSrvNetID := '', tTimeout := DEFAULT_ADS_TIMEOUT );
 	fbSocketCloseAll 	: FB_SocketCloseAll;
-	
+	sSrvNetId			:STRING 			:='';
 	hListener          	: T_HSOCKET;
 	hSocket         	: T_HSOCKET;
 	
-	x:int; (* xxx *)
+
 
 	
 	
@@ -53,39 +49,29 @@ VAR
 	ioldStep			:INT;
 	tSTEP				:TON;
 	TimeInStep 			:TIME;	
-	i,uiLEN				:UINT; 
-	strDiagnose			:STRING; 
-	udiSLEN 			:UDINT; (* num of bytes to befired *)
-	udiHelp				:UDINT; 
-	aServiceBuffer  	:ARRAY[0..Sewts_TCP.MAX_Bool_SIZE] OF BOOL ;	(* DATA for queue entry*)
 	
-	//Data Structures
-	strSendQueue		:strSenddata;				(*Data send *)
-	strSendBuffer		:strRecivedata;				(*Data recive *)
+	strDiagnose			:STRING; 
+	udiHelp				:UDINT; 
+	
+	
+
 
 	nPort_OLD			:UINT;				
 	sIPAddress_OLD		:STRING;	
-	bAsClient_OLD		:BOOL;
-
-	sNetString			:STRING(10)	:= '';
-	iTerminaterNetLen	:UDINT;
-
-	sSrvNetId			:STRING		:= ''; 	
+	bAsClient_OLD		:BOOL;	 	
+	sSendData			: INT;
 END_VAR
 
 VAR CONSTANT 
 	STEP_Error 		:INT 	:= -2;	
-	STEP_ONConnect	:INT	:= 10;
-	STEP_Disconnect	:INT	:= 21;		
-	STEP_WAIT_SEND	:INT   	:= 11; 
+	STEP_ONConnect	:INT	:= 6;	
+	STEP_WAIT_SEND	:INT   	:= 7; 
 	TimeOut			:TIME	:= T#2S;
 	tClientLookup	:TIME 	:= T#5100MS; (* (server)  timeout to enable accept   *)
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[TimingSystem();
-
-CheckReceiveData();
 
 CASE iSTEP OF
 	-3:	(*******************************************************)
@@ -130,39 +116,10 @@ CASE iSTEP OF
 		strDiagnose := 'start / init';
 		nPort_OLD			:= nPort;				
 		sIPAddress_OLD		:= sIPAddress;	
-		bAsClient_OLD		:= bAsClient;	
  		bConnected			:= FALSE;
 		
-		IF bAsClient THEN 
-			iSTEP := iSTEP+1;
-		ELSE
-			iSTEP := 4;	
-		END_IF; 		
-		
-	2: 	(*******************************************************)
-		strDiagnose := 'Connect as CLIENT to a SERVER';
-		fbConnect ( bExecute 	:= FALSE );
-		fbConnect (	bExecute	:= TRUE,
-					sSrvNetId	:= sSrvNetId,
-					sRemoteHost	:= sIPAddress,
-					nRemotePort	:= nPort);
 	
-		iSTEP	:= iSTEP + 1; 
-
-	3: 	(*******************************************************)
-		strDiagnose := 'Connect as CLIENT end';
-		fbConnect ( bExecute 	:= FALSE );
-       	IF NOT fbConnect.bBusy THEN
-            IF NOT fbConnect.bError THEN
-                bConnected 	:= TRUE;
-                hSocket    	:= fbConnect.hSocket;
-				iSTEP		:= STEP_ONConnect;	(* >> OnConnect >> *)
-            ELSIF TimeInStep	> TimeOut THEN
-				iSTEP		:=  STEP_Error; (* ReLoop *)
-           END_IF
-         END_IF;
-	
-	4: (*******************************************************)
+	2: (*******************************************************)
 		strDiagnose := 'Provide a SERVER';
 	   (*******************************************************)
 		fbAccept (bExecute		:= FALSE);
@@ -173,7 +130,7 @@ CASE iSTEP OF
 					tTimeout   	:= t#30s,
 					bExecute	:= TRUE );		
 		iSTEP := iSTEP+1;
-	5: (*******************************************************)
+	3: (*******************************************************)
 		strDiagnose := 'Wait for listener';
 			fbListen(  bExecute := FALSE  );
 			IF NOT fbListen.bBusy THEN
@@ -193,7 +150,7 @@ CASE iSTEP OF
 				END_IF
 			END_IF
 
-	6:	(*******************************************************) 
+	4:	(*******************************************************) 
 		strDiagnose	:= 'enable acceptance of clients';
 		fbAccept (bExecute		:= FALSE);
 		fbAccept (hListener		:= hListener,
@@ -202,7 +159,7 @@ CASE iSTEP OF
 						
 			iStep	:=	iSTEP+1;
 
-	7: (* wait for client connection *)
+	5: (* wait for client connection *)
 			fbAccept (bExecute  := FALSE);
 
 			IF NOT  fbAccept.bBusy THEN  
@@ -222,25 +179,22 @@ CASE iSTEP OF
 
 		
 	(*******************************************************)		
-STEP_ONConnect: (* (10 )STEP_ONConnect *)
+STEP_ONConnect: (* (10 )STEP_ONConnect and recieve data *)
 				strDiagnose := 'OnConnectEvent';
 				bconnected 	:=TRUE;
-				OnConnectEvent();
+				CheckReceiveData();
 				iSTEP 		:= iSTEP+1; 
 
 STEP_WAIT_SEND: (*******************************************************)	
-		strDiagnose := 'Check Queue for data to send ';
-		
-			PrepareSendBuffer();	
-	
+		strDiagnose := 'Check Queue for data to send ';	
 			fbSocketSend( bExecute 	:= FALSE );
 			fbSocketSend( hSocket 	:= hSocket,
-						  pSrc 		:= ADR(strSendBuffer.arbyDATA),
-						  cbLen 	:= udiSLEN,
+						  pSrc 		:= ADR(strSendData),
+						  cbLen 	:= LEN(strSendData),
 						bExecute	:= TRUE );	
 			iSTEP	:= iSTEP + 1;
 	
-	12: (*******************************************************)
+	8: (*******************************************************)
       	fbSocketSend( bExecute 	:= FALSE );
 		
    		IF NOT fbSocketSend.bBusy THEN
@@ -253,11 +207,11 @@ STEP_WAIT_SEND: (*******************************************************)
             ELSE
 				iSTEP	:= STEP_Error;
             END_IF
-        END_IF
+        END_IF		
 		
-	13: strDiagnose := 'Fire delay....';
+	9: strDiagnose := 'Fire delay....';
 		IF  TimeInStep > tFireDelay THEN 
-				iSTEP 	:= STEP_WAIT_SEND; (* ReLoop *)
+				iSTEP 	:= STEP_ONConnect; (* ReLoop *)
 		END_IF;
 END_CASE]]></ST>
     </Implementation>
@@ -267,7 +221,6 @@ END_CASE]]></ST>
       <Implementation>
         <ST><![CDATA[CheckParameterChange := 	nPort_OLD			<> nPort OR 				
 								sIPAddress_OLD		<> sIPAddress OR	
-								bAsClient_OLD		<> bAsClient OR 
 								bEnable				<> TRUE; 
 		
 ]]></ST>
@@ -290,14 +243,11 @@ END_CASE]]></ST>
 	fbSocketReceive(
 				sSrvNetId	:= sSrvNetId,
 				hSocket		:= hSocket,
-				cbLen  		:= SIZEOF 	(ptReceiveBuffer^.arbyDATA),
-				pDest  		:= ADR		(ptReceiveBuffer^.arbyDATA),
+				cbLen  		:= LEN(strOutputdata),
+				pDest  		:= ADR(strOutputdata),
 				tTimeout	:= T#5s);
 
-	(* OnReceiveEvent *)				
-	IF fbSocketReceive.nRecBytes >0  THEN 
-		ptReceiveBuffer^.bJob := TRUE;
-	END_IF
+	
 		
 	(* Connection fail detection !!! *)
 	IF 	(
@@ -308,27 +258,8 @@ END_CASE]]></ST>
 	AND bConnected 
 	AND iSTEP < 20 THEN
 		bConnected 	:= FALSE;
-		iSTEP 		:= STEP_Disconnect;
+		iSTEP 		:= STEP_Error;
 	END_IF; ]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="OnConnectEvent" Id="{886aa338-89ef-45c8-8877-73e76b8815e3}">
-      <Implementation>
-        <ST><![CDATA[
-MemSet(destAddr := ADR(strSendQueue.STACK), fillByte := 0, n := SIZEOF (strSendQueue.STACK));
-
-
-]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="PrepareSendBuffer" Id="{a71bc2b7-b1fa-4b59-b725-d6618aef828e}">
-      <Implementation>
-        <ST><![CDATA[				
-(* copy data from source mem into Sendbuffer *)
-MEMCPY(destAddr  := ADR (strSendBuffer.arbyDATA) ,srcAddr :=ADR(strSendQueue.STACK), n := SIZEOF(strSendQueue.STACK ));
-
-		
-]]></ST>
       </Implementation>
     </Action>
     <Action Name="TimingSystem" Id="{129255b7-859b-4620-b94f-1eb9951cc015}">
@@ -344,160 +275,5 @@ MEMCPY(destAddr  := ADR (strSendBuffer.arbyDATA) ,srcAddr :=ADR(strSendQueue.STA
 ]]></ST>
       </Implementation>
     </Action>
-    <LineIds Name="FB_TCP_COM">
-      <LineId Id="1405" Count="4" />
-      <LineId Id="2243" Count="5" />
-      <LineId Id="1410" Count="0" />
-      <LineId Id="1941" Count="0" />
-      <LineId Id="2156" Count="0" />
-      <LineId Id="2048" Count="0" />
-      <LineId Id="2067" Count="1" />
-      <LineId Id="1945" Count="0" />
-      <LineId Id="2050" Count="0" />
-      <LineId Id="2053" Count="0" />
-      <LineId Id="2051" Count="0" />
-      <LineId Id="1946" Count="0" />
-      <LineId Id="1600" Count="0" />
-      <LineId Id="1413" Count="0" />
-      <LineId Id="1419" Count="3" />
-      <LineId Id="1942" Count="0" />
-      <LineId Id="2055" Count="2" />
-      <LineId Id="1423" Count="3" />
-      <LineId Id="2154" Count="0" />
-      <LineId Id="1428" Count="0" />
-      <LineId Id="1943" Count="0" />
-      <LineId Id="1429" Count="4" />
-      <LineId Id="1944" Count="0" />
-      <LineId Id="1436" Count="5" />
-      <LineId Id="1446" Count="0" />
-      <LineId Id="1448" Count="0" />
-      <LineId Id="1851" Count="0" />
-      <LineId Id="1850" Count="0" />
-      <LineId Id="1852" Count="0" />
-      <LineId Id="1449" Count="0" />
-      <LineId Id="1628" Count="0" />
-      <LineId Id="1619" Count="0" />
-      <LineId Id="1621" Count="5" />
-      <LineId Id="1617" Count="0" />
-      <LineId Id="1467" Count="0" />
-      <LineId Id="1853" Count="0" />
-      <LineId Id="1630" Count="0" />
-      <LineId Id="1634" Count="3" />
-      <LineId Id="1649" Count="0" />
-      <LineId Id="1640" Count="0" />
-      <LineId Id="1651" Count="0" />
-      <LineId Id="1644" Count="1" />
-      <LineId Id="1848" Count="0" />
-      <LineId Id="1854" Count="0" />
-      <LineId Id="1856" Count="0" />
-      <LineId Id="1855" Count="0" />
-      <LineId Id="2059" Count="0" />
-      <LineId Id="1868" Count="4" />
-      <LineId Id="1849" Count="0" />
-      <LineId Id="1874" Count="0" />
-      <LineId Id="1873" Count="0" />
-      <LineId Id="1875" Count="0" />
-      <LineId Id="1877" Count="9" />
-      <LineId Id="2249" Count="1" />
-      <LineId Id="2252" Count="0" />
-      <LineId Id="2254" Count="0" />
-      <LineId Id="2251" Count="0" />
-      <LineId Id="1894" Count="3" />
-      <LineId Id="1934" Count="0" />
-      <LineId Id="1898" Count="3" />
-      <LineId Id="1939" Count="0" />
-      <LineId Id="1902" Count="5" />
-      <LineId Id="1958" Count="0" />
-      <LineId Id="1908" Count="0" />
-      <LineId Id="1959" Count="0" />
-      <LineId Id="1961" Count="1" />
-      <LineId Id="2063" Count="0" />
-      <LineId Id="1909" Count="1" />
-      <LineId Id="1925" Count="0" />
-      <LineId Id="1963" Count="0" />
-      <LineId Id="1926" Count="3" />
-      <LineId Id="1604" Count="0" />
-      <LineId Id="1473" Count="1" />
-      <LineId Id="1603" Count="0" />
-      <LineId Id="1936" Count="0" />
-      <LineId Id="1475" Count="0" />
-      <LineId Id="1477" Count="0" />
-      <LineId Id="1479" Count="1" />
-      <LineId Id="1845" Count="0" />
-      <LineId Id="1481" Count="0" />
-      <LineId Id="1483" Count="0" />
-      <LineId Id="1488" Count="0" />
-      <LineId Id="1655" Count="3" />
-      <LineId Id="1653" Count="0" />
-      <LineId Id="1759" Count="0" />
-      <LineId Id="1761" Count="0" />
-      <LineId Id="1654" Count="0" />
-      <LineId Id="1660" Count="0" />
-      <LineId Id="1846" Count="0" />
-      <LineId Id="1661" Count="1" />
-      <LineId Id="1671" Count="4" />
-      <LineId Id="1664" Count="0" />
-      <LineId Id="1670" Count="0" />
-      <LineId Id="1668" Count="0" />
-      <LineId Id="1493" Count="0" />
-      <LineId Id="1669" Count="0" />
-      <LineId Id="1504" Count="1" />
-      <LineId Id="2336" Count="0" />
-      <LineId Id="1509" Count="0" />
-      <LineId Id="35" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_TCP_COM.CheckParameterChange">
-      <LineId Id="6" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="14" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_TCP_COM.CheckReceiveData">
-      <LineId Id="50" Count="2" />
-      <LineId Id="60" Count="0" />
-      <LineId Id="88" Count="5" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="94" Count="0" />
-      <LineId Id="63" Count="4" />
-      <LineId Id="61" Count="0" />
-      <LineId Id="59" Count="0" />
-      <LineId Id="38" Count="0" />
-      <LineId Id="30" Count="0" />
-      <LineId Id="41" Count="0" />
-      <LineId Id="44" Count="0" />
-      <LineId Id="39" Count="0" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="84" Count="0" />
-      <LineId Id="75" Count="0" />
-      <LineId Id="77" Count="1" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="87" Count="0" />
-      <LineId Id="85" Count="0" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_TCP_COM.OnConnectEvent">
-      <LineId Id="2" Count="3" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_TCP_COM.PrepareSendBuffer">
-      <LineId Id="50" Count="0" />
-      <LineId Id="62" Count="1" />
-      <LineId Id="219" Count="0" />
-      <LineId Id="207" Count="0" />
-      <LineId Id="194" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_TCP_COM.TimingSystem">
-      <LineId Id="2" Count="0" />
-      <LineId Id="14" Count="0" />
-      <LineId Id="10" Count="0" />
-      <LineId Id="4" Count="2" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="1" Count="0" />
-      <LineId Id="7" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>

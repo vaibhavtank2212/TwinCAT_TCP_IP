@@ -3,7 +3,7 @@
   <DUT Name="strSenddata" Id="{ce8fb777-c09a-4c69-bfb3-d28524e3c1a7}">
     <Declaration><![CDATA[TYPE strSenddata  :
 	STRUCT
-		STACK		: ARRAY  [0 .. 31] OF BOOL;
+		STACK		: ARRAY  [0 .. Sewts_TCP.MAX_Bool_SIZE] OF BOOL ;
 	END_STRUCT
 END_TYPE
 ]]></Declaration>

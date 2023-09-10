@@ -19,9 +19,13 @@ VAR
 	iTCP_COM_ErrId		:UDINT;
 	stTCP_COM_sError	:STRING(80);
 	
-	
+	(*timer*)
 	Timer100ms           :TON;
 	Timer500ms			 :TON;
+	
+	
+	(*initialisation for the array in Global *)
+	i 					: INT ;
 	
 	
 	
@@ -30,24 +34,26 @@ VAR
 	
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[TCP_COM(
-		bEnable:= bEanable_Sever,	
-        bAsClient:=	FALSE,
-        nPort:=	uinPort,	
-        sIPAddress:=,		
-        tFireDelay:=,		
-        bCompactMessage:=,
-        ptReceiveBuffer:=ADR(GVX.st_recive),	
-        bNewData:=	,
-        ptSendBuffer:= ADR(GVX.st_send));
+      <ST><![CDATA[TCP_COM(bEnable:= TRUE,
+		nPort:=uinPort,
+		sIPAddress:=sIP_Address,
+		tFireDelay:=);
+		
+
+	
 		(*Output from the function block TCP/IP communication*)
         bTCP_COM_Error		:=TCP_COM.bError;
         iTCP_COM_ErrId		:=TCP_COM.nErrId;
         stTCP_COM_sError	:=TCP_COM.sError;
 		bTCP_COM_Connected 	:= TCP_COM.bConnected;
 		
+		(*initialisatio  of arry *)
+		GVX.st_send.STACK[0] := FALSE;
+		FOR (i := 1) TO 31 DO
+			GVX.st_send.STACK[i] := TRUE;
+		END_FOR
 		
-		GVX.st_send.STACK[0] := NOT GVX.st_send.STACK[0];
+					   
 		
 		
 		
@@ -55,25 +61,20 @@ END_VAR]]></Declaration>
 		
 		(* Configuration of Timer100ms *)
 Timer100ms(IN := TRUE, PT := T#100MS);
+Timer500ms(IN := TRUE, PT := T#100MS);
 
 IF Timer100ms.Q THEN
-    GVX.st_send.STACK[0] := NOT GVX.st_send.STACK[0];
+     TCP_COM.strSendData := GVX.st_send;
+	 GVX.st_recive		 := TCP_COM.strOutputdata;
+	 Timer100ms(IN := FALSE);
+	 
 END_IF
 
+IF Timer100ms.Q THEN
+     GVX.st_send.STACK[0] := NOT GVX.st_send.STACK[0];
+	 Timer500ms(IN := FALSE);
+END_IF
 ]]></ST>
     </Implementation>
-    <LineIds Name="MAIN">
-      <LineId Id="29" Count="0" />
-      <LineId Id="32" Count="0" />
-      <LineId Id="34" Count="2" />
-      <LineId Id="38" Count="1" />
-      <LineId Id="41" Count="0" />
-      <LineId Id="43" Count="5" />
-      <LineId Id="53" Count="0" />
-      <LineId Id="59" Count="2" />
-      <LineId Id="78" Count="4" />
-      <LineId Id="84" Count="6" />
-      <LineId Id="83" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>

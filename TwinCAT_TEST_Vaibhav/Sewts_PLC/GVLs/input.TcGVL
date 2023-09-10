@@ -3,7 +3,9 @@
   <GVL Name="input" Id="{20c0a195-e80f-4f04-a815-7ab5ea192169}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
-	bdetsensor		: BOOL  ;
+	bsSensor		: BOOL; //s sensor for detection cylinder NO
+	bM2Spindisk		:BOOL; // spins disk Motor
+	bM1Motor		:BOOL; // M1 motor 
 	
 END_VAR]]></Declaration>
   </GVL>
